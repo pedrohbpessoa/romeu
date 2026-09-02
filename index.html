@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enxoval do Romeu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F6F8;
+    --surface:#FFFFFF;
+    --text:#1F2A44;
+    --muted:#6B7280;
+    --border:#E4E8EE;
+    --navy:#314572;
+    --teal:#6AAEC3;
+    --tealdark:#4C8DA3;
+    --magenta:#D00C65;
+    --magentalight:#E0559A;
+    --orange:#E27B37;
+    --lime:#C2D841;
+    --pink:#F2A6C9;
+    --good:#3F9D5C;
+    --warn:#D68A1F;
+    --danger:#D0384A;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Poppins',sans-serif;margin:0;}
+  a{color:inherit;}
+
+  header.top{
+    position:sticky; top:0; z-index:20;
+    background:var(--navy);
+    color:#fff;
+    padding:18px 20px;
+  }
+  header.top .row{
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    max-width:1180px; margin:0 auto;
+  }
+  header.top h1{font-size:1.3rem; font-weight:600;}
+  header.top .sub{font-size:.82rem; color:#C9D3E8; margin-top:2px;}
+  .search-box{
+    display:flex; align-items:center; background:rgba(255,255,255,.12);
+    border-radius:8px; padding:8px 12px; min-width:220px; flex:1; max-width:320px;
+  }
+  .search-box input{
+    background:transparent; border:none; outline:none; color:#fff; width:100%;
+    font-family:'Inter',sans-serif; font-size:.92rem;
+  }
+  .search-box input::placeholder{color:#B9C4DC;}
+
+  .urgency{
+    background:#FCEBEC; border:1px solid #F3C1C6; color:#8A2430;
+    padding:10px 20px; font-size:.88rem; display:none;
+  }
+  .urgency.show{display:block;}
+  .urgency strong{color:#D0384A;}
+
+  main{max-width:1180px; margin:0 auto; padding:22px 20px 60px;}
+
+  section.summary{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr));
+    gap:14px; margin-bottom:26px;
+  }
+  .card{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:16px 18px;
+  }
+  .card .label{font-size:.76rem; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;}
+  .card .big{font-family:'Poppins',sans-serif; font-size:1.7rem; font-weight:600; margin-top:4px;}
+  .card .bar-track{background:#EDEFF3; border-radius:6px; height:7px; margin-top:10px; overflow:hidden;}
+  .card .bar-fill{background:var(--good); height:100%; border-radius:6px; transition:width .4s ease;}
+
+  .breakdowns{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:26px;}
+  @media(max-width:720px){.breakdowns{grid-template-columns:1fr;}}
+  .breakdown-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px;}
+  .breakdown-card h3{font-size:.95rem; margin-bottom:12px;}
+  .mini-row{display:flex; align-items:center; gap:10px; margin-bottom:9px; font-size:.83rem;}
+  .mini-row .name{width:130px; flex-shrink:0; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .mini-row .bar-track{flex:1; background:#EDEFF3; border-radius:5px; height:6px; overflow:hidden;}
+  .mini-row .bar-fill{height:100%; border-radius:5px;}
+  .mini-row .pct{width:38px; text-align:right; color:var(--muted); font-variant-numeric:tabular-nums;}
+
+  nav.tabs{
+    display:flex; gap:6px; margin-bottom:18px; flex-wrap:wrap;
+    border-bottom:1px solid var(--border); padding-bottom:2px;
+  }
+  nav.tabs button{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:.86rem;
+    background:none; border:none; padding:9px 14px; cursor:pointer;
+    color:var(--muted); border-bottom:2px solid transparent; border-radius:6px 6px 0 0;
+  }
+  nav.tabs button.active{color:var(--navy); border-bottom-color:var(--navy);}
+  nav.tabs button:hover{background:#EEF1F6;}
+
+  .subtabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px;}
+  .chip{
+    font-size:.78rem; font-weight:600; padding:6px 12px; border-radius:20px;
+    border:1px solid var(--border); background:#fff; cursor:pointer; color:var(--text);
+  }
+  .chip.active{background:var(--navy); border-color:var(--navy); color:#fff;}
+
+  table{width:100%; border-collapse:collapse; background:var(--surface); border-radius:var(--radius); overflow:hidden;}
+  thead th{
+    text-align:left; font-size:.72rem; text-transform:uppercase; letter-spacing:.03em;
+    color:var(--muted); padding:10px 12px; border-bottom:1px solid var(--border); background:#FAFBFC;
+  }
+  tbody td{padding:9px 12px; border-bottom:1px solid var(--border); font-size:.86rem; vertical-align:middle;}
+  tbody tr:hover{background:#FAFBFC;}
+  .cat-tag{
+    display:inline-block; font-size:.72rem; font-weight:600; padding:3px 9px; border-radius:20px; color:#fff;
+    white-space:nowrap;
+  }
+  .item-name{font-weight:500;}
+  .obs{font-size:.75rem; color:var(--muted); margin-top:2px;}
+  .have-badge{font-size:.72rem; font-weight:700; padding:3px 8px; border-radius:6px;}
+  .have-yes{background:#E4F5E9; color:var(--good);}
+  .have-no{background:#FBEAEA; color:var(--danger);}
+  input.field, select.field{
+    font-family:'Inter',sans-serif; font-size:.82rem; padding:5px 7px; border:1px solid var(--border);
+    border-radius:6px; width:100%; background:#fff;
+  }
+  input.field-link{min-width:130px;}
+  input.field-price{width:90px;}
+  input.field-date{width:130px;}
+  select.field-prio{width:100px;}
+  .row-comprado{display:flex; align-items:center; gap:6px;}
+  .save-hint{font-size:.68rem; color:var(--muted);}
+
+  .shop-list{list-style:none; padding:0; margin:0;}
+  .shop-list li{
+    background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+    padding:12px 16px; margin-bottom:8px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  }
+  .shop-list .prio-dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+  .prio-Alta{background:var(--danger);}
+  .prio-Média{background:var(--warn);}
+  .prio-Baixa{background:var(--good);}
+  .prio-none{background:#C7CCD4;}
+  .shop-list .meta{font-size:.78rem; color:var(--muted);}
+  .shop-list .name{font-weight:600; flex:1; min-width:160px;}
+
+  footer{max-width:1180px; margin:20px auto 40px; padding:0 20px; font-size:.76rem; color:var(--muted);}
+
+  .empty{padding:30px; text-align:center; color:var(--muted); font-size:.88rem;}
+
+  #pinModal{
+    position:fixed; inset:0; background:rgba(20,25,40,.5); display:none;
+    align-items:center; justify-content:center; z-index:50;
+  }
+  #pinModal.show{display:flex;}
+  #pinModal .box{background:#fff; border-radius:var(--radius); padding:24px; width:280px;}
+  #pinModal h3{margin-bottom:10px; font-size:1rem;}
+  #pinModal input{width:100%; padding:9px 10px; border:1px solid var(--border); border-radius:6px; font-size:1rem; margin-bottom:12px;}
+  #pinModal .actions{display:flex; gap:8px; justify-content:flex-end;}
+  #pinModal button{
+    font-family:'Inter',sans-serif; font-weight:600; font-size:.85rem; padding:8px 14px;
+    border-radius:6px; border:none; cursor:pointer;
+  }
+  #pinModal .cancel{background:#EEF1F6; color:var(--text);}
+  #pinModal .confirm{background:var(--navy); color:#fff;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="row">
+    <div>
+      <h1>Enxoval do Romeu</h1>
+      <div class="sub" id="updatedAt">carregando…</div>
+    </div>
+    <div class="search-box">
+      <input id="searchInput" type="text" placeholder="Buscar item…">
+    </div>
+  </div>
+</header>
+
+<div class="urgency" id="urgencyBar"></div>
+
+<main>
+
+  <section class="summary" id="summaryCards"></section>
+
+  <section class="breakdowns">
+    <div class="breakdown-card">
+      <h3>Por categoria</h3>
+      <div id="catBreakdown"></div>
+    </div>
+    <div class="breakdown-card">
+      <h3>Por prioridade</h3>
+      <div id="prioBreakdown"></div>
+    </div>
+  </section>
+
+  <nav class="tabs" id="mainTabs">
+    <button data-view="completa" class="active">Tabela completa</button>
+    <button data-view="categoria">Por categoria</button>
+    <button data-view="prioridade">Por prioridade</button>
+    <button data-view="compra">Lista de compra</button>
+  </nav>
+
+  <div class="subtabs" id="subTabs" style="display:none;"></div>
+
+  <div id="viewArea"></div>
+
+</main>
+
+<footer>
+  Dados sincronizados com a planilha do Google Sheets. Edições feitas aqui são salvas direto na planilha.
+  <span id="readonlyNote"></span>
+</footer>
+
+<div id="pinModal">
+  <div class="box">
+    <h3>PIN de edição</h3>
+    <input id="pinInput" type="password" inputmode="numeric" placeholder="Digite o PIN">
+    <div class="actions">
+      <button class="cancel" onclick="closePinModal()">Cancelar</button>
+      <button class="confirm" onclick="confirmPin()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================== CONFIG ================== */
+const API_URL = 'https://script.google.com/macros/s/AKfycbwSvc7RD81YOItdmqguCNupZTthaYVKh1pvi2cC07AQd51qcIstY6-aCDlKVXBUcz3I/exec';
+/* ============================================== */
+
+const CAT_COLORS = [
+  ['Amamentação', '#E27B37'],
+  ['Higiene', '#C2D841'],
+  ['Saúde', '#D00C65'],
+  ['Enxoval', '#6AAEC3'],
+  ['Passeio', '#314572'],
+  ['Quarto', '#4C8DA3'],
+  ['Acessórios', '#F2A6C9'],
+  ['Roupa', '#E0559A'],
+];
+function catColor(cat){
+  for (const [prefix, color] of CAT_COLORS){
+    if (cat && cat.indexOf(prefix) === 0) return color;
+  }
+  return '#8A93A6';
+}
+function textColorFor(bg){
+  // rough luminance check for the couple of light categories
+  const light = ['#C2D841', '#F2A6C9'];
+  return light.includes(bg) ? '#3D3D00' : '#FFFFFF';
+}
+
+const PRIO_ORDER = { 'Alta': 0, 'Média': 1, 'Baixa': 2, '': 3 };
+
+let ITEMS = [];
+let currentView = 'completa';
+let currentSubFilter = null;
+let searchTerm = '';
+const isReadonly = new URLSearchParams(location.search).get('ver') === '1';
+
+function parseQty(v){
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string'){
+    const n = parseFloat(v.replace(',', '.'));
+    if (!isNaN(n)) return n;
+  }
+  return null;
+}
+function hasItem(it){
+  const t = it.qtdTemos;
+  if (typeof t === 'number') return t > 0;
+  if (typeof t === 'string'){
+    const s = t.trim().toLowerCase();
+    if (s === '' || s === '0' || s === 'confirmar') return false;
+    return true;
+  }
+  return false;
+}
+function fmtMoney(n){
+  return n.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+}
+
+async function loadData(){
+  try{
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    ITEMS = data.items || [];
+    document.getElementById('updatedAt').textContent =
+      'Atualizado ' + new Date(data.updatedAt).toLocaleString('pt-BR');
+    render();
+  }catch(err){
+    document.getElementById('viewArea').innerHTML =
+      '<div class="empty">Não consegui carregar os dados agora. Recarregue a página em alguns segundos.</div>';
+    console.error(err);
+  }
+}
+
+function render(){
+  renderSummary();
+  renderUrgency();
+  renderSubTabs();
+  renderView();
+  if (isReadonly){
+    document.getElementById('readonlyNote').textContent = ' · modo somente leitura';
+  }
+}
+
+/* ---------- Summary ---------- */
+function renderSummary(){
+  const total = ITEMS.length;
+  const have = ITEMS.filter(hasItem).length;
+  const pct = total ? Math.round((have/total)*100) : 0;
+
+  const falta = ITEMS.filter(it => !hasItem(it) && parseQty(it.preco) !== null)
+    .reduce((s,it) => s + parseQty(it.preco), 0);
+  const economia = ITEMS.filter(it => hasItem(it) && parseQty(it.preco) !== null)
+    .reduce((s,it) => s + parseQty(it.preco), 0);
+
+  const altaPendente = ITEMS.filter(it => !hasItem(it) && it.prioridade === 'Alta').length;
+
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="card">
+      <div class="label">Progresso geral</div>
+      <div class="big">${pct}%</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+      <div class="save-hint">${have} de ${total} itens</div>
+    </div>
+    <div class="card">
+      <div class="label">Custo que ainda falta</div>
+      <div class="big">${fmtMoney(falta)}</div>
+      <div class="save-hint">soma dos preços já preenchidos em itens pendentes</div>
+    </div>
+    <div class="card">
+      <div class="label">Já economizado (ganhos)</div>
+      <div class="big">${fmtMoney(economia)}</div>
+      <div class="save-hint">preço estimado de itens que já temos</div>
+    </div>
+    <div class="card">
+      <div class="label">Alta prioridade pendente</div>
+      <div class="big">${altaPendente}</div>
+      <div class="save-hint">itens a comprar</div>
+    </div>
+  `;
+
+  // by category
+  const cats = [...new Set(ITEMS.map(i => i.categoria))];
+  const catHtml = cats.map(c => {
+    const items = ITEMS.filter(i => i.categoria === c);
+    const h = items.filter(hasItem).length;
+    const p = items.length ? Math.round((h/items.length)*100) : 0;
+    return `<div class="mini-row">
+      <span class="name">${c}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${p}%;background:${catColor(c)}"></span></span>
+      <span class="pct">${p}%</span>
+    </div>`;
+  }).join('');
+  document.getElementById('catBreakdown').innerHTML = catHtml;
+
+  // by priority
+  const prios = ['Alta','Média','Baixa'];
+  const prioHtml = prios.map(p => {
+    const items = ITEMS.filter(i => i.prioridade === p);
+    const h = items.filter(hasItem).length;
+    const pct2 = items.length ? Math.round((h/items.length)*100) : 0;
+    const color = p === 'Alta' ? '#D0384A' : p === 'Média' ? '#D68A1F' : '#3F9D5C';
+    return `<div class="mini-row">
+      <span class="name">${p} (${items.length})</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${pct2}%;background:${color}"></span></span>
+      <span class="pct">${pct2}%</span>
+    </div>`;
+  }).join('');
+  const semPrio = ITEMS.filter(i => !i.prioridade).length;
+  document.getElementById('prioBreakdown').innerHTML = prioHtml +
+    `<div class="save-hint" style="margin-top:6px;">${semPrio} itens ainda sem prioridade definida</div>`;
+}
+
+/* ---------- Urgency banner ---------- */
+function renderUrgency(){
+  const now = new Date();
+  const in30 = new Date(now.getTime() + 30*86400000);
+  const urgent = ITEMS.filter(it => {
+    if (hasItem(it) || it.prioridade !== 'Alta' || !it.prazo) return false;
+    const d = new Date(it.prazo + 'T00:00:00');
+    return d <= in30;
+  });
+  const bar = document.getElementById('urgencyBar');
+  if (urgent.length){
+    bar.className = 'urgency show';
+    bar.innerHTML = `<strong>${urgent.length} item(ns) de alta prioridade</strong> com prazo nos próximos 30 dias: ` +
+      urgent.map(i => i.item).join(', ');
+  } else {
+    bar.className = 'urgency';
+  }
+}
+
+/* ---------- Tabs ---------- */
+document.getElementById('mainTabs').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-view]');
+  if (!btn) return;
+  currentView = btn.dataset.view;
+  currentSubFilter = null;
+  [...document.querySelectorAll('#mainTabs button')].forEach(b => b.classList.toggle('active', b === btn));
+  renderSubTabs();
+  renderView();
+});
+
+function renderSubTabs(){
+  const wrap = document.getElementById('subTabs');
+  if (currentView === 'categoria'){
+    const cats = [...new Set(ITEMS.map(i => i.categoria))];
+    if (currentSubFilter === null) currentSubFilter = cats[0];
+    wrap.style.display = 'flex';
+    wrap.innerHTML = cats.map(c =>
+      `<button class="chip ${c===currentSubFilter?'active':''}" data-cat="${c}">${c}</button>`
+    ).join('');
+    wrap.querySelectorAll('.chip').forEach(chip => {
+      chip.onclick = () => { currentSubFilter = chip.dataset.cat; renderSubTabs(); renderView(); };
+    });
+  } else if (currentView === 'prioridade'){
+    const prios = ['Alta','Média','Baixa','Sem prioridade'];
+    if (currentSubFilter === null) currentSubFilter = 'Alta';
+    wrap.style.display = 'flex';
+    wrap.innerHTML = prios.map(p =>
+      `<button class="chip ${p===currentSubFilter?'active':''}" data-prio="${p}">${p}</button>`
+    ).join('');
+    wrap.querySelectorAll('.chip').forEach(chip => {
+      chip.onclick = () => { currentSubFilter = chip.dataset.prio; renderSubTabs(); renderView(); };
+    });
+  } else {
+    wrap.style.display = 'none';
+    wrap.innerHTML = '';
+  }
+}
+
+/* ---------- View rendering ---------- */
+function filteredBySearch(list){
+  if (!searchTerm) return list;
+  const t = searchTerm.toLowerCase();
+  return list.filter(i => i.item.toLowerCase().includes(t) || i.categoria.toLowerCase().includes(t));
+}
+
+function renderView(){
+  const area = document.getElementById('viewArea');
+  let list;
+
+  if (currentView === 'completa'){
+    list = filteredBySearch(ITEMS);
+    area.innerHTML = renderGroupedTable(list);
+  } else if (currentView === 'categoria'){
+    list = filteredBySearch(ITEMS.filter(i => i.categoria === currentSubFilter));
+    area.innerHTML = renderTable(list);
+  } else if (currentView === 'prioridade'){
+    const target = currentSubFilter === 'Sem prioridade' ? '' : currentSubFilter;
+    list = filteredBySearch(ITEMS.filter(i => (i.prioridade || '') === target));
+    area.innerHTML = renderTable(list);
+  } else if (currentView === 'compra'){
+    list = filteredBySearch(ITEMS.filter(i => !hasItem(i)));
+    list.sort((a,b) => {
+      const pa = PRIO_ORDER[a.prioridade || ''] ?? 3;
+      const pb = PRIO_ORDER[b.prioridade || ''] ?? 3;
+      if (pa !== pb) return pa - pb;
+      const da = a.prazo || '9999';
+      const db = b.prazo || '9999';
+      return da.localeCompare(db);
+    });
+    area.innerHTML = renderShopList(list);
+  }
+
+  attachFieldHandlers();
+}
+
+function renderGroupedTable(list){
+  const cats = [...new Set(list.map(i => i.categoria))];
+  if (!cats.length) return '<div class="empty">Nenhum item encontrado.</div>';
+  return cats.map(c => `
+    <h3 style="margin:22px 0 10px;font-size:1rem;">
+      <span class="cat-tag" style="background:${catColor(c)};color:${textColorFor(catColor(c))}">${c}</span>
+    </h3>
+    ${renderTable(list.filter(i => i.categoria === c))}
+  `).join('');
+}
+
+function renderTable(list){
+  if (!list.length) return '<div class="empty">Nenhum item encontrado.</div>';
+  const editCols = isReadonly ? '' : `
+    <th>Link</th><th>Preço</th><th>Prioridade</th><th>Prazo</th><th>Comprado</th>`;
+  const rows = list.map(it => `
+    <tr data-row="${it.rowIndex}">
+      <td>
+        <div class="item-name">${it.item}</div>
+        ${it.observacoes ? `<div class="obs">${it.observacoes}</div>` : ''}
+      </td>
+      <td>${it.qtdNecessaria ?? ''}</td>
+      <td>${it.qtdTemos ?? ''} ${hasItem(it) ? '<span class="have-badge have-yes">temos</span>' : '<span class="have-badge have-no">falta</span>'}</td>
+      ${isReadonly ? '' : `
+      <td><input class="field field-link" type="url" placeholder="colar link" value="${it.link||''}" data-field="link"></td>
+      <td><input class="field field-price" type="text" inputmode="decimal" placeholder="R$" value="${it.preco||''}" data-field="preco"></td>
+      <td>
+        <select class="field field-prio" data-field="prioridade">
+          <option value="" ${!it.prioridade?'selected':''}>—</option>
+          <option value="Alta" ${it.prioridade==='Alta'?'selected':''}>Alta</option>
+          <option value="Média" ${it.prioridade==='Média'?'selected':''}>Média</option>
+          <option value="Baixa" ${it.prioridade==='Baixa'?'selected':''}>Baixa</option>
+        </select>
+      </td>
+      <td><input class="field field-date" type="date" value="${it.prazo||''}" data-field="prazo"></td>
+      <td class="row-comprado">
+        <input type="checkbox" data-field="comprado" ${hasItem(it)?'checked':''}>
+      </td>`}
+    </tr>
+  `).join('');
+  return `
+    <table>
+      <thead><tr>
+        <th>Item</th><th>Necessário</th><th>Temos</th>${editCols}
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function renderShopList(list){
+  if (!list.length) return '<div class="empty">Nada pendente por aqui — tudo comprado! 🎉</div>';
+  return '<ul class="shop-list">' + list.map(it => {
+    const prioClass = it.prioridade ? 'prio-' + it.prioridade : 'prio-none';
+    const prazoTxt = it.prazo ? new Date(it.prazo+'T00:00:00').toLocaleDateString('pt-BR') : 'sem prazo definido';
+    const precoTxt = parseQty(it.preco) !== null ? fmtMoney(parseQty(it.preco)) : '';
+    return `<li>
+      <span class="prio-dot ${prioClass}"></span>
+      <span class="name">${it.item}</span>
+      <span class="cat-tag" style="background:${catColor(it.categoria)};color:${textColorFor(catColor(it.categoria))}">${it.categoria}</span>
+      <span class="meta">${it.prioridade || 'sem prioridade'} · ${prazoTxt}${precoTxt ? ' · ' + precoTxt : ''}</span>
+    </li>`;
+  }).join('') + '</ul>';
+}
+
+/* ---------- Search ---------- */
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchTerm = e.target.value;
+  renderView();
+});
+
+/* ---------- Editing / write-back ---------- */
+let pendingSave = null;
+
+function attachFieldHandlers(){
+  document.querySelectorAll('#viewArea tr[data-row]').forEach(tr => {
+    const rowIndex = tr.dataset.row;
+    tr.querySelectorAll('[data-field]').forEach(el => {
+      const field = el.dataset.field;
+      const evt = (el.tagName === 'SELECT' || el.type === 'date' || el.type === 'checkbox') ? 'change' : 'blur';
+      el.addEventListener(evt, () => {
+        if (field === 'comprado'){
+          const item = ITEMS.find(i => String(i.rowIndex) === String(rowIndex));
+          const qtd = parseQty(item.qtdNecessaria) ?? 1;
+          saveField(rowIndex, { qtdTemos: el.checked ? qtd : 0 });
+        } else if (field === 'preco'){
+          saveField(rowIndex, { preco: el.value });
+        } else {
+          const updates = {};
+          updates[field] = el.value;
+          saveField(rowIndex, updates);
+        }
+      });
+    });
+  });
+}
+
+function saveField(rowIndex, updates){
+  const pin = sessionStorage.getItem('enxoval_pin');
+  if (!pin){
+    pendingSave = { rowIndex, updates };
+    openPinModal();
+    return;
+  }
+  doSave(rowIndex, updates, pin);
+}
+
+async function doSave(rowIndex, updates, pin){
+  try{
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ pin, rowIndex, updates })
+    });
+    const data = await res.json();
+    if (!data.ok){
+      sessionStorage.removeItem('enxoval_pin');
+      alert('PIN incorreto. Tente salvar de novo.');
+      return;
+    }
+    Object.assign(ITEMS.find(i => String(i.rowIndex) === String(rowIndex)), updates);
+    render();
+  }catch(err){
+    alert('Não consegui salvar agora. Tente novamente.');
+    console.error(err);
+  }
+}
+
+function openPinModal(){
+  document.getElementById('pinModal').classList.add('show');
+  document.getElementById('pinInput').focus();
+}
+function closePinModal(){
+  document.getElementById('pinModal').classList.remove('show');
+  pendingSave = null;
+}
+function confirmPin(){
+  const pin = document.getElementById('pinInput').value.trim();
+  if (!pin) return;
+  sessionStorage.setItem('enxoval_pin', pin);
+  document.getElementById('pinModal').classList.remove('show');
+  document.getElementById('pinInput').value = '';
+  if (pendingSave){
+    doSave(pendingSave.rowIndex, pendingSave.updates, pin);
+    pendingSave = null;
+  }
+}
+document.getElementById('pinInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmPin();
+});
+
+/* ---------- init ---------- */
+loadData();
+setInterval(loadData, 5*60*1000); // atualiza a cada 5 min
+</script>
+</body>
+</html>
